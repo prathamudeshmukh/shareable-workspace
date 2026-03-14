@@ -17,4 +17,4 @@ bucket_name = "workspace-files"
 crons = ["* * * * *"]
 
 [vars]
-PARTYKIT_HOST = "shareable-workspace.your-account.partykit.dev"
+PARTYKIT_HOST = "https://shareable-workspace.prathamudeshmukh.partykit.dev"

@@ -1,0 +1,33 @@
+name: Deploy PartyKit
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - party/workspace.ts
+      - partykit.json
+
+jobs:
+  deploy:
+    name: Deploy PartyKit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy
+        env:
+          PARTYKIT_TOKEN: ${{ secrets.PARTYKIT_TOKEN }}
+        run: npx partykit deploy
