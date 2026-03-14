@@ -82,7 +82,7 @@ describe("getWorkspace", () => {
     expect(result!.files).toHaveLength(1);
     expect(result!.files[0].name).toBe("photo.jpg");
     // r2_key must NOT be exposed on the public WorkspaceFile
-    expect((result!.files[0] as Record<string, unknown>).r2Key).toBeUndefined();
+    expect((result!.files[0] as unknown as Record<string, unknown>).r2Key).toBeUndefined();
   });
 });
 
@@ -99,7 +99,7 @@ describe("addFile", () => {
     });
     expect(file.id).toBe("f-1");
     expect(file.url).toBe("/api/files/ws-1/f-1/doc.pdf");
-    expect((file as Record<string, unknown>).r2Key).toBeUndefined();
+    expect((file as unknown as Record<string, unknown>).r2Key).toBeUndefined();
   });
 });
 

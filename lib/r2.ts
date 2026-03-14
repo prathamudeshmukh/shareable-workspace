@@ -12,10 +12,12 @@ export async function putFile(
   });
 }
 
+// Returns the R2 object body stream, or null if the key doesn't exist.
+// Typed as unknown to avoid conflicts between Cloudflare and global ReadableStream types.
 export async function getFile(
   bucket: R2Bucket,
   key: string
-): Promise<ReadableStream | null> {
+): Promise<unknown> {
   const object = await bucket.get(key);
   if (!object) return null;
   return object.body;
