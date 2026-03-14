@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "party:dev": "partykit dev",
     "cf:build": "opennextjs-cloudflare build",
-    "cf:deploy": "opennextjs-cloudflare build && wrangler deploy"
+    "cf:deploy": "opennextjs-cloudflare build && wrangler deploy",
+    "cf:deploy-cron": "wrangler deploy --config wrangler-cron.toml"
   },
   "dependencies": {
     "next": "16.1.6",
