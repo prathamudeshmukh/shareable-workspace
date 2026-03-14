@@ -8,9 +8,9 @@ binding = "FILES"
 bucket_name = "workspace-files"
 
 [[d1_databases]]
-binding = "DB"
+binding = "workspaces_db"
 database_name = "workspaces-db"
-database_id = "placeholder-replace-after-create"
+database_id = "1dd5b8e8-ec8f-4d3f-88a6-223239f53021"
 
 [triggers]
 crons = ["* * * * *"]

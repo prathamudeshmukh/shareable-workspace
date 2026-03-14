@@ -5,9 +5,9 @@ compatibility_flags = ["nodejs_compat"]
 
 # Shares the same D1 and R2 bindings as the main worker
 [[d1_databases]]
-binding = "DB"
+binding = "workspaces_db"
 database_name = "workspaces-db"
-database_id = "placeholder-replace-after-create"
+database_id = "1dd5b8e8-ec8f-4d3f-88a6-223239f53021"
 
 [[r2_buckets]]
 binding = "FILES"
