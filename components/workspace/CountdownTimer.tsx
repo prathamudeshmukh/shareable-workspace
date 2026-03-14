@@ -26,10 +26,9 @@ export function CountdownTimer({ expiresAt, onExpired }: CountdownTimerProps) {
   );
 
   useEffect(() => {
-    if (remainingMs <= 0) {
-      onExpired();
-      return;
-    }
+    // Start immediately at zero — no interval needed
+    const initial = Math.max(0, expiresAt - Date.now());
+    if (initial <= 0) return;
 
     const interval = setInterval(() => {
       const next = Math.max(0, expiresAt - Date.now());
@@ -41,7 +40,8 @@ export function CountdownTimer({ expiresAt, onExpired }: CountdownTimerProps) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [expiresAt, onExpired, remainingMs]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expiresAt]);
 
   return (
     <div className="flex flex-col items-center gap-1">
