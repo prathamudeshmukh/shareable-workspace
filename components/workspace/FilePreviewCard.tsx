@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getPreviewType, formatFileSize } from "@/lib/file-utils";
 import { CountdownTimer } from "./CountdownTimer";
 import type { WorkspaceFile } from "@/types/workspace";
@@ -10,12 +10,29 @@ interface FilePreviewCardProps {
   onExpired: (fileId: string) => void;
 }
 
+const MOBILE_TIMER_VISIBLE_MS = 3000;
+
 export function FilePreviewCard({ file, onExpired }: FilePreviewCardProps) {
   const previewType = getPreviewType(file.mimeType);
+  const [actionsVisible, setTimerTouched] = useState(false);
+  const touchHideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleTouch = () => {
+    if (touchHideTimeout.current) clearTimeout(touchHideTimeout.current);
+    setTimerTouched(true);
+    touchHideTimeout.current = setTimeout(() => setTimerTouched(false), MOBILE_TIMER_VISIBLE_MS);
+  };
+
+  useEffect(() => () => {
+    if (touchHideTimeout.current) clearTimeout(touchHideTimeout.current);
+  }, []);
 
   return (
-    <div className="group flex animate-fade-in flex-col overflow-hidden rounded-xl border border-gray-800 bg-gray-900">
-      <div className="relative flex h-44 items-center justify-center overflow-hidden bg-gray-950">
+    <div
+      className="group flex animate-fade-in flex-col overflow-hidden rounded-xl border border-gray-800 bg-gray-900"
+      onTouchStart={handleTouch}
+    >
+      <div className="relative flex h-28 items-center justify-center overflow-hidden bg-gray-950 sm:h-44">
         <Preview file={file} type={previewType} />
         <a
           href={file.url}
@@ -41,7 +58,9 @@ export function FilePreviewCard({ file, onExpired }: FilePreviewCardProps) {
         </p>
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
-          <div className="flex items-center gap-2">
+          <div
+            className={`flex items-center gap-1 transition-opacity duration-200 ${actionsVisible ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+          >
             <a
               href={file.url}
               download={file.name}

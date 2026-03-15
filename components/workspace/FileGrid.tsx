@@ -34,9 +34,9 @@ export function FileGrid({ files, onFileExpired }: FileGridProps) {
 
   return (
     <div className="relative">
-      <div ref={scrollRef} className="h-120 overflow-y-auto rounded-xl border border-white/5 p-3">
+      <div ref={scrollRef} className="h-72 overflow-y-auto rounded-xl border border-white/5 p-3 sm:h-120">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {files.map((file) => (
+          {[...files].sort((a, b) => b.uploadedAt - a.uploadedAt).map((file) => (
             <FilePreviewCard key={file.id} file={file} onExpired={onFileExpired} />
           ))}
         </div>
