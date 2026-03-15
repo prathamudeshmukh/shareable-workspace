@@ -6,7 +6,7 @@
     "dev": "next dev",
     "dev:setup": "wrangler d1 execute workspaces-db --local --file=schema.sql",
     "dev:local": "npm run dev:setup && concurrently -n \"app,party\" -c \"cyan,green\" \"next dev\" \"npm run party:dev\"",
-    "build": "NEXT_DISABLE_TURBOPACK=1 NODE_OPTIONS=--max-old-space-size=4096 next build --no-turbopack",
+    "build": "NODE_OPTIONS=--max-old-space-size=4096 next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
