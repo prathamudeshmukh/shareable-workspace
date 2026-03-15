@@ -18,3 +18,8 @@ crons = ["* * * * *"]
 
 [vars]
 PARTYKIT_HOST = "https://shareable-workspace.prathamudeshmukh.partykit.dev"
+
+[observability]
+[observability.logs]
+enabled = true
+invocation_logs = true
