@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
-import { headers } from "next/headers";
+import { getEnv } from "@/lib/get-env";
+import { getWorkspace } from "@/lib/db";
 import { WorkspacePage } from "@/components/workspace/WorkspacePage";
+
+export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ workspaceId: string }>;
@@ -8,18 +11,10 @@ interface Props {
 
 export default async function WorkspaceRoute({ params }: Props) {
   const { workspaceId } = await params;
-  const headersList = await headers();
-  const host = headersList.get("host") ?? "localhost:3000";
-  const protocol = host.includes("localhost") ? "http" : "https";
+  const env = await getEnv();
+  const workspace = await getWorkspace(env.DB, workspaceId);
 
-  const res = await fetch(
-    `${protocol}://${host}/api/workspace/${workspaceId}`,
-    { cache: "no-store" }
-  );
-
-  if (!res.ok) notFound();
-
-  const workspace = await res.json();
+  if (!workspace) notFound();
 
   return <WorkspacePage workspace={workspace} />;
 }
