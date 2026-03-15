@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
+        source: "/workspace",
+        destination: "/",
+      },
+      {
         source: "/workspace/:path*",
         destination: "/:path*",
       },
