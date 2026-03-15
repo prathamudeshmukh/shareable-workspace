@@ -6,7 +6,7 @@ import { createWorkspace } from "@/lib/db";
 export async function POST(): Promise<NextResponse> {
   try {
     const env = await getEnv();
-    const id = nanoid();
+    const id = nanoid(7);
     const workspace = await createWorkspace(env.DB, id);
 
     return NextResponse.json({ id: workspace.id }, { status: 201 });

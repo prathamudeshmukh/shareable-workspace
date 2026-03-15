@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const env = await getEnv();
-  const id = nanoid();
+  const id = nanoid(7);
   await createWorkspace(env.DB, id);
   redirect(`/ws/${id}`);
 }

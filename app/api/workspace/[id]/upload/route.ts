@@ -45,7 +45,7 @@ export async function POST(req: Request, { params }: Params): Promise<NextRespon
     // Process each file: write to R2 then record in D1
     const newFiles = await Promise.all(
       uploadedFiles.map(async (file) => {
-        const fileId = nanoid();
+        const fileId = nanoid(7);
         const safeName = sanitizeFilename(file.name);
         const r2Key = buildR2Key(id, fileId, safeName);
         const buffer = await file.arrayBuffer();
