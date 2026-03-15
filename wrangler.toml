@@ -27,9 +27,6 @@ database_name = "workspaces-db"
 database_id = "1dd5b8e8-ec8f-4d3f-88a6-223239f53021"
 migrations_dir = "migrations"
 
-[triggers]
-crons = ["* * * * *"]
-
 [vars]
 PARTYKIT_HOST = "https://shareable-workspace.prathamudeshmukh.partykit.dev"
 
