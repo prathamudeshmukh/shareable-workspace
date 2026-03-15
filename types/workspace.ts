@@ -39,8 +39,8 @@ export interface WorkspaceRow {
 // ---- Zod schemas (API boundary validation) ----
 
 export const WorkspaceFileSchema = z.object({
-  id: z.string().uuid(),
-  workspaceId: z.string().uuid(),
+  id: z.string().min(1),
+  workspaceId: z.string().min(1),
   name: z.string().min(1).max(255),
   mimeType: z.string().min(1),
   size: z.number().int().positive(),
@@ -50,13 +50,13 @@ export const WorkspaceFileSchema = z.object({
 });
 
 export const WorkspaceSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().min(1),
   createdAt: z.number().int().positive(),
   files: z.array(WorkspaceFileSchema),
 });
 
 export const CreateWorkspaceResponseSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().min(1),
 });
 
 // ---- SSE event types ----

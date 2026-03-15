@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
+import { nanoid } from "nanoid";
 import { getEnv } from "@/lib/get-env";
 import { createWorkspace } from "@/lib/db";
 
 export async function POST(): Promise<NextResponse> {
   try {
     const env = await getEnv();
-    const id = uuidv4();
+    const id = nanoid();
     const workspace = await createWorkspace(env.DB, id);
 
     return NextResponse.json({ id: workspace.id }, { status: 201 });

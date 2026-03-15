@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { FilePreviewCard } from "@/components/workspace/FilePreviewCard";
 import type { WorkspaceFile } from "@/types/workspace";
 
@@ -70,5 +70,64 @@ describe("FilePreviewCard", () => {
     // Timer fires immediately for already-expired files (no interval started)
     // onExpired should not be called yet — the interval only calls it after ticking
     expect(onExpired).not.toHaveBeenCalled();
+  });
+
+  describe("download buttons", () => {
+    it("renders two download links — footer button and preview overlay", () => {
+      render(<FilePreviewCard file={makeFile({ name: "photo.jpg", mimeType: "image/jpeg" })} onExpired={vi.fn()} />);
+      const links = screen.getAllByRole("link", { name: /download photo\.jpg/i });
+      expect(links).toHaveLength(2);
+    });
+
+    it("both download links point to the file URL", () => {
+      const file = makeFile({ name: "photo.jpg", mimeType: "image/jpeg", url: "/api/files/ws-1/f-1/photo.jpg" });
+      render(<FilePreviewCard file={file} onExpired={vi.fn()} />);
+      const links = screen.getAllByRole("link", { name: /download photo\.jpg/i });
+      links.forEach((link) => expect(link).toHaveAttribute("href", "/api/files/ws-1/f-1/photo.jpg"));
+    });
+
+    it("both download links carry the download attribute with the filename", () => {
+      const file = makeFile({ name: "report.pdf", mimeType: "application/pdf" });
+      render(<FilePreviewCard file={file} onExpired={vi.fn()} />);
+      const links = screen.getAllByRole("link", { name: /download report\.pdf/i });
+      links.forEach((link) => expect(link).toHaveAttribute("download", "report.pdf"));
+    });
+
+    it("preview overlay download link is present in the DOM (hidden via CSS, not JS)", () => {
+      render(<FilePreviewCard file={makeFile({ name: "clip.mp4", mimeType: "video/mp4" })} onExpired={vi.fn()} />);
+      // Both anchors exist in the DOM; visibility is controlled by Tailwind opacity classes
+      const links = screen.getAllByRole("link", { name: /download clip\.mp4/i });
+      expect(links[0]).toBeInTheDocument();
+    });
+
+    it("overlay download link shows 'Download' label text", () => {
+      render(<FilePreviewCard file={makeFile({ name: "notes.txt", mimeType: "text/plain" })} onExpired={vi.fn()} />);
+      expect(screen.getByText("Download")).toBeInTheDocument();
+    });
+
+    it("clicking the footer download link does not throw", () => {
+      render(<FilePreviewCard file={makeFile({ name: "archive.zip", mimeType: "application/zip" })} onExpired={vi.fn()} />);
+      const links = screen.getAllByRole("link", { name: /download archive\.zip/i });
+      // footer button is the second link (overlay is first in DOM order)
+      expect(() => fireEvent.click(links[1])).not.toThrow();
+    });
+
+    it("download links are rendered for every preview type", () => {
+      const mimeTypes = [
+        { mimeType: "image/png", name: "img.png" },
+        { mimeType: "video/mp4", name: "clip.mp4" },
+        { mimeType: "application/pdf", name: "doc.pdf" },
+        { mimeType: "text/plain", name: "notes.txt" },
+        { mimeType: "application/zip", name: "archive.zip" },
+      ];
+      mimeTypes.forEach(({ mimeType, name }) => {
+        const { unmount } = render(
+          <FilePreviewCard file={makeFile({ mimeType, name })} onExpired={vi.fn()} />
+        );
+        const links = screen.getAllByRole("link", { name: new RegExp(`download ${name}`, "i") });
+        expect(links).toHaveLength(2);
+        unmount();
+      });
+    });
   });
 });

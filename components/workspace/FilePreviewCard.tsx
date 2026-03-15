@@ -14,9 +14,25 @@ export function FilePreviewCard({ file, onExpired }: FilePreviewCardProps) {
   const previewType = getPreviewType(file.mimeType);
 
   return (
-    <div className="flex animate-fade-in flex-col overflow-hidden rounded-xl border border-gray-800 bg-gray-900">
+    <div className="group flex animate-fade-in flex-col overflow-hidden rounded-xl border border-gray-800 bg-gray-900">
       <div className="relative flex h-44 items-center justify-center overflow-hidden bg-gray-950">
         <Preview file={file} type={previewType} />
+        <a
+          href={file.url}
+          download={file.name}
+          className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
+          aria-label={`Download ${file.name}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex flex-col items-center gap-1.5 text-white">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <span className="text-xs font-medium">Download</span>
+          </div>
+        </a>
       </div>
       <div className="flex flex-col gap-0.5 px-3 py-2.5">
         <p className="truncate text-sm font-medium text-gray-100" title={file.name}>
@@ -24,11 +40,26 @@ export function FilePreviewCard({ file, onExpired }: FilePreviewCardProps) {
         </p>
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
-          <CountdownTimer
-            compact
-            expiresAt={file.expiresAt}
-            onExpired={() => onExpired(file.id)}
-          />
+          <div className="flex items-center gap-2">
+            <a
+              href={file.url}
+              download={file.name}
+              className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-800 hover:text-gray-100"
+              title="Download"
+              aria-label={`Download ${file.name}`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </a>
+            <CountdownTimer
+              compact
+              expiresAt={file.expiresAt}
+              onExpired={() => onExpired(file.id)}
+            />
+          </div>
         </div>
       </div>
     </div>
