@@ -34,6 +34,7 @@ export function FilePreviewCard({ file, onExpired }: FilePreviewCardProps) {
           </div>
         </a>
       </div>
+      <ExpiryProgressBar uploadedAt={file.uploadedAt} expiresAt={file.expiresAt} />
       <div className="flex flex-col gap-0.5 px-3 py-2.5">
         <p className="truncate text-sm font-medium text-gray-100" title={file.name}>
           {file.name}
@@ -120,6 +121,40 @@ function TextPreview({ url }: { url: string }) {
     <pre className="h-full w-full overflow-hidden p-3 text-left text-xs text-gray-400">
       {content || "Loading…"}
     </pre>
+  );
+}
+
+function ExpiryProgressBar({ uploadedAt, expiresAt }: { uploadedAt: number; expiresAt: number }) {
+  const totalMs = expiresAt - uploadedAt;
+  const [remainingMs, setRemainingMs] = useState<number | null>(null);
+
+  useEffect(() => {
+    const initial = Math.max(0, expiresAt - Date.now());
+    setRemainingMs(initial);
+    if (initial <= 0) return;
+
+    const interval = setInterval(() => {
+      const next = Math.max(0, expiresAt - Date.now());
+      setRemainingMs(next);
+      if (next <= 0) clearInterval(interval);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  const pct = remainingMs === null ? 100 : totalMs > 0 ? (remainingMs / totalMs) * 100 : 0;
+  const colorClass =
+    remainingMs !== null && remainingMs <= 10_000 ? "bg-red-900" :
+    remainingMs !== null && remainingMs <= 60_000 ? "bg-amber-900" :
+    "bg-gray-700";
+
+  return (
+    <div className="h-1 w-full bg-gray-800">
+      <div
+        className={`h-full transition-[width] duration-1000 ease-linear ${colorClass}`}
+        style={{ width: `${pct}%` }}
+      />
+    </div>
   );
 }
 

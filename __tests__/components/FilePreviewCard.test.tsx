@@ -72,6 +72,80 @@ describe("FilePreviewCard", () => {
     expect(onExpired).not.toHaveBeenCalled();
   });
 
+  describe("expiry progress bar", () => {
+    it("renders a progress bar element", () => {
+      const { container } = render(<FilePreviewCard file={makeFile()} onExpired={vi.fn()} />);
+      // outer track + inner fill
+      const track = container.querySelector(".bg-gray-800");
+      expect(track).toBeInTheDocument();
+    });
+
+    it("progress bar fill width reflects remaining time", () => {
+      const now = Date.now();
+      const uploadedAt = now - 300_000; // 5 min ago
+      const expiresAt = now + 300_000;  // 5 min left → ~50%
+      const { container } = render(
+        <FilePreviewCard file={makeFile({ uploadedAt, expiresAt })} onExpired={vi.fn()} />
+      );
+      const fill = container.querySelector(".bg-gray-800 > div") as HTMLElement;
+      const width = parseFloat(fill.style.width);
+      expect(width).toBeGreaterThan(40);
+      expect(width).toBeLessThan(60);
+    });
+
+    it("progress bar is full when file just uploaded", () => {
+      const now = Date.now();
+      const { container } = render(
+        <FilePreviewCard file={makeFile({ uploadedAt: now, expiresAt: now + 600_000 })} onExpired={vi.fn()} />
+      );
+      const fill = container.querySelector(".bg-gray-800 > div") as HTMLElement;
+      const width = parseFloat(fill.style.width);
+      expect(width).toBeGreaterThan(99);
+    });
+
+    it("progress bar fill is zero for an expired file", () => {
+      const now = Date.now();
+      const { container } = render(
+        <FilePreviewCard file={makeFile({ uploadedAt: now - 700_000, expiresAt: now - 100_000 })} onExpired={vi.fn()} />
+      );
+      const fill = container.querySelector(".bg-gray-800 > div") as HTMLElement;
+      expect(fill.style.width).toBe("0%");
+    });
+
+    it("progress bar uses amber color when under 60 seconds remain", () => {
+      const now = Date.now();
+      const { container } = render(
+        <FilePreviewCard
+          file={makeFile({ uploadedAt: now - 599_000, expiresAt: now + 30_000 })}
+          onExpired={vi.fn()}
+        />
+      );
+      const fill = container.querySelector(".bg-gray-800 > div") as HTMLElement;
+      expect(fill.className).toMatch(/bg-amber-900/);
+    });
+
+    it("progress bar uses red color when under 10 seconds remain", () => {
+      const now = Date.now();
+      const { container } = render(
+        <FilePreviewCard
+          file={makeFile({ uploadedAt: now - 595_000, expiresAt: now + 5_000 })}
+          onExpired={vi.fn()}
+        />
+      );
+      const fill = container.querySelector(".bg-gray-800 > div") as HTMLElement;
+      expect(fill.className).toMatch(/bg-red-900/);
+    });
+
+    it("progress bar is positioned between preview and file info", () => {
+      const { container } = render(<FilePreviewCard file={makeFile()} onExpired={vi.fn()} />);
+      const card = container.firstChild as HTMLElement;
+      const children = Array.from(card.children);
+      const trackIndex = children.findIndex((el) => el.classList.contains("bg-gray-800"));
+      // preview area is first child (index 0), track should be index 1
+      expect(trackIndex).toBe(1);
+    });
+  });
+
   describe("download buttons", () => {
     it("renders two download links — footer button and preview overlay", () => {
       render(<FilePreviewCard file={makeFile({ name: "photo.jpg", mimeType: "image/jpeg" })} onExpired={vi.fn()} />);

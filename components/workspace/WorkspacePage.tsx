@@ -62,34 +62,35 @@ export function WorkspacePage({ workspace }: WorkspacePageProps) {
   }, []);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-4xl flex-col gap-8 px-4 py-10">
-      {/* Header */}
-      <header className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-lg font-semibold text-gray-100">Dropzone</h1>
-          <p className="text-xs text-gray-500 font-mono">{workspace.id}</p>
-        </div>
-      </header>
-
-      {/* Drop zone */}
-      <FileDropZone
-        workspaceId={workspace.id}
-        onUploaded={handleUploaded}
-        disabled={false}
-      />
-
-      {/* File grid */}
-      {files.length > 0 && <FileGrid files={files} onFileExpired={handleFileExpired} />}
-
-      {/* Empty state */}
-      {files.length === 0 && (
-        <p className="text-center text-sm text-gray-600">
-          No files yet — upload something above.
-        </p>
-      )}
-
-      {/* Share panel */}
+    <>
       <SharePanel workspaceId={workspace.id} />
-    </div>
+
+      <div className="mx-auto flex min-h-screen max-w-4xl flex-col gap-8 px-4 py-10">
+        {/* Header */}
+        <header className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-lg font-semibold text-gray-100">Dropzone</h1>
+            <p className="text-xs text-gray-500 font-mono">{workspace.id}</p>
+          </div>
+        </header>
+
+        {/* Drop zone */}
+        <FileDropZone
+          workspaceId={workspace.id}
+          onUploaded={handleUploaded}
+          disabled={false}
+        />
+
+        {/* File grid */}
+        {files.length > 0 && <FileGrid files={files} onFileExpired={handleFileExpired} />}
+
+        {/* Empty state */}
+        {files.length === 0 && (
+          <p className="text-center text-sm text-gray-600">
+            No files yet — upload something above.
+          </p>
+        )}
+      </div>
+    </>
   );
 }

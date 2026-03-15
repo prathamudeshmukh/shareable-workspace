@@ -22,12 +22,11 @@ function getColorClass(remainingMs: number): string {
 }
 
 export function CountdownTimer({ expiresAt, onExpired, compact = false }: CountdownTimerProps) {
-  const [remainingMs, setRemainingMs] = useState(() =>
-    Math.max(0, expiresAt - Date.now())
-  );
+  const [remainingMs, setRemainingMs] = useState<number | null>(null);
 
   useEffect(() => {
     const initial = Math.max(0, expiresAt - Date.now());
+    setRemainingMs(initial);
     if (initial <= 0) return;
 
     const interval = setInterval(() => {
@@ -43,10 +42,13 @@ export function CountdownTimer({ expiresAt, onExpired, compact = false }: Countd
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expiresAt]);
 
+  const display = remainingMs === null ? "--:--" : formatTime(remainingMs);
+  const colorClass = remainingMs === null ? "text-gray-400" : getColorClass(remainingMs);
+
   if (compact) {
     return (
-      <span className={`font-mono text-xs tabular-nums transition-colors ${getColorClass(remainingMs)}`}>
-        {formatTime(remainingMs)}
+      <span className={`font-mono text-xs tabular-nums transition-colors ${colorClass}`}>
+        {display}
       </span>
     );
   }
@@ -56,10 +58,8 @@ export function CountdownTimer({ expiresAt, onExpired, compact = false }: Countd
       <span className="text-xs font-medium uppercase tracking-widest text-gray-500">
         Expires in
       </span>
-      <span
-        className={`font-mono text-4xl font-bold tabular-nums transition-colors ${getColorClass(remainingMs)}`}
-      >
-        {formatTime(remainingMs)}
+      <span className={`font-mono text-4xl font-bold tabular-nums transition-colors ${colorClass}`}>
+        {display}
       </span>
     </div>
   );
