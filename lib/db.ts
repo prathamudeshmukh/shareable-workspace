@@ -113,6 +113,20 @@ export async function addFile(
   };
 }
 
+export async function getFileRecord(
+  db: D1Database,
+  fileId: string,
+  workspaceId: string
+): Promise<{ id: string; r2Key: string } | null> {
+  const row = await db
+    .prepare("SELECT id, r2_key FROM files WHERE id = ? AND workspace_id = ?")
+    .bind(fileId, workspaceId)
+    .first<{ id: string; r2_key: string }>();
+
+  if (!row) return null;
+  return { id: row.id, r2Key: row.r2_key };
+}
+
 export async function deleteFile(
   db: D1Database,
   fileId: string

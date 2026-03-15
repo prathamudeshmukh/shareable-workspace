@@ -7,9 +7,10 @@ import type { WorkspaceFile } from "@/types/workspace";
 interface FileGridProps {
   files: WorkspaceFile[];
   onFileExpired: (fileId: string) => void;
+  onFileDeleted: (fileId: string) => void;
 }
 
-export function FileGrid({ files, onFileExpired }: FileGridProps) {
+export function FileGrid({ files, onFileExpired, onFileDeleted }: FileGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [hasMoreBelow, setHasMoreBelow] = useState(false);
 
@@ -37,7 +38,7 @@ export function FileGrid({ files, onFileExpired }: FileGridProps) {
       <div ref={scrollRef} className="h-72 overflow-y-auto rounded-xl border border-white/5 p-3 sm:h-120">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {[...files].sort((a, b) => b.uploadedAt - a.uploadedAt).map((file) => (
-            <FilePreviewCard key={file.id} file={file} onExpired={onFileExpired} />
+            <FilePreviewCard key={file.id} file={file} onExpired={onFileExpired} onDelete={onFileDeleted} />
           ))}
         </div>
       </div>

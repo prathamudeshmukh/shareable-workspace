@@ -18,6 +18,15 @@ export function WorkspacePage({ workspace }: WorkspacePageProps) {
     setFiles((prev) => prev.filter((f) => f.id !== fileId));
   }, []);
 
+  const handleFileDeleted = useCallback(async (fileId: string) => {
+    setFiles((prev) => prev.filter((f) => f.id !== fileId));
+    try {
+      await fetch(`/api/workspace/${workspace.id}/files/${fileId}`, { method: "DELETE" });
+    } catch (error) {
+      console.error("[workspace] delete file failed:", error);
+    }
+  }, [workspace.id]);
+
   // Connect to PartyKit room for real-time updates
   useEffect(() => {
     const partykitHost = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "localhost:1999";
@@ -82,7 +91,7 @@ export function WorkspacePage({ workspace }: WorkspacePageProps) {
         />
 
         {/* File grid */}
-        {files.length > 0 && <FileGrid files={files} onFileExpired={handleFileExpired} />}
+        {files.length > 0 && <FileGrid files={files} onFileExpired={handleFileExpired} onFileDeleted={handleFileDeleted} />}
 
         {/* Empty state */}
         {files.length === 0 && (

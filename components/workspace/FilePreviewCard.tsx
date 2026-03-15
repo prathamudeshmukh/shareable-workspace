@@ -8,13 +8,15 @@ import type { WorkspaceFile } from "@/types/workspace";
 interface FilePreviewCardProps {
   file: WorkspaceFile;
   onExpired: (fileId: string) => void;
+  onDelete: (fileId: string) => void;
 }
 
 const MOBILE_TIMER_VISIBLE_MS = 3000;
 
-export function FilePreviewCard({ file, onExpired }: FilePreviewCardProps) {
+export function FilePreviewCard({ file, onExpired, onDelete }: FilePreviewCardProps) {
   const previewType = getPreviewType(file.mimeType);
   const [actionsVisible, setTimerTouched] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const touchHideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleTouch = () => {
@@ -28,58 +30,107 @@ export function FilePreviewCard({ file, onExpired }: FilePreviewCardProps) {
   }, []);
 
   return (
-    <div
-      className="group flex animate-fade-in flex-col overflow-hidden rounded-xl border border-gray-800 bg-gray-900"
-      onTouchStart={handleTouch}
-    >
-      <div className="relative flex h-28 items-center justify-center overflow-hidden bg-gray-950 sm:h-44">
-        <Preview file={file} type={previewType} />
-        <a
-          href={file.url}
-          download={file.name}
-          className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
-          aria-label={`Download ${file.name}`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex flex-col items-center gap-1.5 text-white">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            <span className="text-xs font-medium">Download</span>
-          </div>
-        </a>
-      </div>
-      <ExpiryProgressBar uploadedAt={file.uploadedAt} expiresAt={file.expiresAt} />
-      <div className="flex flex-col gap-0.5 px-3 py-2.5">
-        <p className="truncate text-sm font-medium text-gray-100" title={file.name}>
-          {file.name}
-        </p>
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
-          <div
-            className={`flex items-center gap-1 transition-opacity duration-200 ${actionsVisible ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+    <>
+      <div
+        className="group flex animate-fade-in cursor-pointer flex-col overflow-hidden rounded-xl border border-gray-800 bg-gray-900"
+        onTouchStart={handleTouch}
+      >
+        <div className="relative flex h-28 items-center justify-center overflow-hidden bg-gray-950 sm:h-44">
+          <Preview file={file} type={previewType} />
+          <a
+            href={file.url}
+            download={file.name}
+            className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
+            aria-label={`Download ${file.name}`}
+            onClick={(e) => e.stopPropagation()}
           >
-            <a
-              href={file.url}
-              download={file.name}
-              className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-800 hover:text-gray-100"
-              title="Download"
-              aria-label={`Download ${file.name}`}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div className="flex flex-col items-center gap-1.5 text-white">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
-            </a>
-            <CountdownTimer
-              compact
-              expiresAt={file.expiresAt}
-              onExpired={() => onExpired(file.id)}
-            />
+              <span className="text-xs font-medium">Download</span>
+            </div>
+          </a>
+        </div>
+        <ExpiryProgressBar uploadedAt={file.uploadedAt} expiresAt={file.expiresAt} />
+        <div className="flex flex-col gap-0.5 px-3 py-2.5">
+          <p className="truncate text-sm font-medium text-gray-100" title={file.name}>
+            {file.name}
+          </p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+            <div className="flex items-center gap-1">
+              <div
+                className={`transition-opacity duration-200 ${actionsVisible ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+              >
+                <CountdownTimer
+                  compact
+                  expiresAt={file.expiresAt}
+                  onExpired={() => onExpired(file.id)}
+                />
+              </div>
+              <button
+                onClick={() => setConfirmOpen(true)}
+                className="rounded p-1 text-gray-600 transition-colors hover:bg-gray-800 hover:text-red-400"
+                title="Delete"
+                aria-label={`Delete ${file.name}`}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                  <path d="M10 11v6M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+              </button>
+            </div>
           </div>
+        </div>
+      </div>
+
+      {confirmOpen && (
+        <DeleteDialog
+          fileName={file.name}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={() => { setConfirmOpen(false); onDelete(file.id); }}
+        />
+      )}
+    </>
+  );
+}
+
+interface DeleteDialogProps {
+  fileName: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+function DeleteDialog({ fileName, onCancel, onConfirm }: DeleteDialogProps) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-sm rounded-xl border border-gray-700 bg-gray-900 p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="text-sm font-medium text-gray-100">Delete file?</p>
+        <p className="mt-1 truncate text-xs text-gray-400" title={fileName}>{fileName}</p>
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            onClick={onCancel}
+            className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:bg-gray-800 hover:text-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-500"
+          >
+            Delete
+          </button>
         </div>
       </div>
     </div>
