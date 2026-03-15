@@ -1,23 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  basePath: "/workspace",
   serverExternalPackages: ["wrangler", "partykit"],
   experimental: {
     serverActions: {
       bodySizeLimit: "50mb",
     },
-  },
-  async rewrites() {
-    return [
-      {
-        source: "/workspace",
-        destination: "/",
-      },
-      {
-        source: "/workspace/:path*",
-        destination: "/:path*",
-      },
-    ];
   },
 };
 
