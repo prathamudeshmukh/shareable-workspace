@@ -22,7 +22,7 @@ export function WorkspacePage({ workspace }: WorkspacePageProps) {
   const handleFileDeleted = useCallback(async (fileId: string) => {
     setFiles((prev) => prev.filter((f) => f.id !== fileId));
     try {
-      await fetch(`/api/workspace/${workspace.id}/files/${fileId}`, { method: "DELETE" });
+      await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/api/workspace/${workspace.id}/files/${fileId}`, { method: "DELETE" });
     } catch (error) {
       console.error("[workspace] delete file failed:", error);
     }

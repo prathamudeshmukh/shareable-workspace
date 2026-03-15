@@ -9,22 +9,27 @@ type Params = { params: Promise<{ id: string; fileId: string }> };
 export async function DELETE(_req: Request, { params }: Params): Promise<NextResponse> {
   try {
     const { id, fileId } = await params;
+    console.log(`[delete] workspaceId=${id} fileId=${fileId}`);
+
     const env = await getEnv();
 
     await deleteFileDb(env.DB, fileId);
-    await deleteFileByPrefix(env.FILES, id, fileId);
+    console.log(`[delete] db record removed fileId=${fileId}`);
 
-    // Broadcast to all connected clients so other tabs update immediately
+    await deleteFileByPrefix(env.FILES, id, fileId);
+    console.log(`[delete] r2 objects removed prefix=workspaces/${id}/${fileId}/`);
+
     await broadcastToWorkspace(
       env.PARTYKIT_HOST,
       id,
       { type: "file_expired", fileId },
       env.PARTYKIT_SECRET
     );
+    console.log(`[delete] broadcast sent workspaceId=${id} fileId=${fileId}`);
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("[workspace] delete file failed:", error);
+    console.error(`[delete] failed:`, error);
     return NextResponse.json({ error: "Delete failed" }, { status: 500 });
   }
 }
