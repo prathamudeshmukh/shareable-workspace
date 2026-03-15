@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 interface CountdownTimerProps {
   expiresAt: number; // epoch ms
   onExpired: () => void;
+  compact?: boolean; // inline mode for file cards
 }
 
 function formatTime(ms: number): string {
@@ -17,16 +18,15 @@ function formatTime(ms: number): string {
 function getColorClass(remainingMs: number): string {
   if (remainingMs <= 10_000) return "text-red-500 animate-pulse";
   if (remainingMs <= 60_000) return "text-amber-400";
-  return "text-gray-100";
+  return "text-gray-400";
 }
 
-export function CountdownTimer({ expiresAt, onExpired }: CountdownTimerProps) {
+export function CountdownTimer({ expiresAt, onExpired, compact = false }: CountdownTimerProps) {
   const [remainingMs, setRemainingMs] = useState(() =>
     Math.max(0, expiresAt - Date.now())
   );
 
   useEffect(() => {
-    // Start immediately at zero — no interval needed
     const initial = Math.max(0, expiresAt - Date.now());
     if (initial <= 0) return;
 
@@ -42,6 +42,14 @@ export function CountdownTimer({ expiresAt, onExpired }: CountdownTimerProps) {
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expiresAt]);
+
+  if (compact) {
+    return (
+      <span className={`font-mono text-xs tabular-nums transition-colors ${getColorClass(remainingMs)}`}>
+        {formatTime(remainingMs)}
+      </span>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-1">

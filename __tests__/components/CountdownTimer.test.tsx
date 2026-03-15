@@ -43,7 +43,7 @@ describe("CountdownTimer", () => {
   it("shows default color above 60 seconds", () => {
     render(<CountdownTimer expiresAt={future(120_000)} onExpired={vi.fn()} />);
     const el = screen.getByText("02:00");
-    expect(el.className).toContain("text-gray-100");
+    expect(el.className).toContain("text-gray-400");
   });
 
   it("shows 00:00 for already-expired timestamp", () => {

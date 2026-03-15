@@ -1,4 +1,4 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getEnv } from "@/lib/get-env";
 import { getWorkspace } from "@/lib/db";
 import { getFile, buildR2Key } from "@/lib/r2";
 import { sanitizeFilename } from "@/lib/file-utils";
@@ -22,11 +22,17 @@ export async function GET(_req: Request, { params }: Params): Promise<Response> 
       return new Response("Bad request", { status: 400 });
     }
 
-    const { env } = await getCloudflareContext({ async: true });
+    const env = await getEnv();
 
     const workspace = await getWorkspace(env.DB, workspaceId);
-    if (!workspace || workspace.expiresAt < Date.now()) {
-      return new Response("Workspace not found or expired", { status: 404 });
+    if (!workspace) {
+      return new Response("Workspace not found", { status: 404 });
+    }
+
+    // getWorkspace only returns non-expired files; if not found, file is expired or missing
+    const meta = workspace.files.find((f) => f.id === fileId);
+    if (!meta) {
+      return new Response("File not found or expired", { status: 404 });
     }
 
     const safeName = sanitizeFilename(filename);
@@ -37,9 +43,7 @@ export async function GET(_req: Request, { params }: Params): Promise<Response> 
       return new Response("File not found", { status: 404 });
     }
 
-    // Find the matching file's MIME type from workspace metadata
-    const meta = workspace.files.find((f) => f.id === fileId);
-    const contentType = meta?.mimeType ?? "application/octet-stream";
+    const contentType = meta.mimeType;
 
     return new Response(fileBody as ReadableStream, {
       headers: {

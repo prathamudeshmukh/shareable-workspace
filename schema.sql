@@ -1,7 +1,6 @@
 CREATE TABLE IF NOT EXISTS workspaces (
   id TEXT PRIMARY KEY,
-  created_at INTEGER NOT NULL,
-  expires_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS files (
@@ -11,8 +10,9 @@ CREATE TABLE IF NOT EXISTS files (
   mime_type TEXT NOT NULL,
   size INTEGER NOT NULL,
   r2_key TEXT NOT NULL,
-  uploaded_at INTEGER NOT NULL
+  uploaded_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_files_workspace ON files(workspace_id);
-CREATE INDEX IF NOT EXISTS idx_workspaces_expires ON workspaces(expires_at);
+CREATE INDEX IF NOT EXISTS idx_files_expires ON files(expires_at);

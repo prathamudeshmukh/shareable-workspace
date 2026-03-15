@@ -23,6 +23,13 @@ export async function getFile(
   return object.body;
 }
 
+export async function deleteFile(
+  bucket: R2Bucket,
+  r2Key: string
+): Promise<void> {
+  await bucket.delete(r2Key);
+}
+
 export async function deleteWorkspaceFiles(
   bucket: R2Bucket,
   workspaceId: string

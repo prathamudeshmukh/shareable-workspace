@@ -5,7 +5,7 @@ import type {
   WorkspaceRow,
   WorkspaceFileRow,
 } from "@/types/workspace";
-import { WORKSPACE_TTL_MS } from "@/lib/constants";
+import { FILE_TTL_MS } from "@/lib/constants";
 import { buildFileUrl } from "@/lib/file-utils";
 
 interface AddFileInput {
@@ -14,6 +14,12 @@ interface AddFileInput {
   name: string;
   mimeType: string;
   size: number;
+  r2Key: string;
+}
+
+export interface ExpiredFileRecord {
+  id: string;
+  workspaceId: string;
   r2Key: string;
 }
 
@@ -26,6 +32,7 @@ function rowToFile(row: WorkspaceFileRow): WorkspaceFile {
     size: row.size,
     url: buildFileUrl(row.workspace_id, row.id, row.name),
     uploadedAt: row.uploaded_at,
+    expiresAt: row.expires_at,
   };
 }
 
@@ -34,16 +41,13 @@ export async function createWorkspace(
   id: string
 ): Promise<Workspace> {
   const createdAt = Date.now();
-  const expiresAt = createdAt + WORKSPACE_TTL_MS;
 
   await db
-    .prepare(
-      "INSERT INTO workspaces (id, created_at, expires_at) VALUES (?, ?, ?)"
-    )
-    .bind(id, createdAt, expiresAt)
+    .prepare("INSERT INTO workspaces (id, created_at) VALUES (?, ?)")
+    .bind(id, createdAt)
     .run();
 
-  return { id, createdAt, expiresAt, files: [] };
+  return { id, createdAt, files: [] };
 }
 
 export async function getWorkspace(
@@ -51,24 +55,24 @@ export async function getWorkspace(
   id: string
 ): Promise<Workspace | null> {
   const row = await db
-    .prepare("SELECT id, created_at, expires_at FROM workspaces WHERE id = ?")
+    .prepare("SELECT id, created_at FROM workspaces WHERE id = ?")
     .bind(id)
     .first<WorkspaceRow>();
 
   if (!row) return null;
 
+  const now = Date.now();
   const { results } = await db
     .prepare(
-      `SELECT id, workspace_id, name, mime_type, size, r2_key, uploaded_at
-       FROM files WHERE workspace_id = ? ORDER BY uploaded_at ASC`
+      `SELECT id, workspace_id, name, mime_type, size, r2_key, uploaded_at, expires_at
+       FROM files WHERE workspace_id = ? AND expires_at > ? ORDER BY uploaded_at ASC`
     )
-    .bind(id)
+    .bind(id, now)
     .all<WorkspaceFileRow>();
 
   return {
     id: row.id,
     createdAt: row.created_at,
-    expiresAt: row.expires_at,
     files: results.map(rowToFile),
   };
 }
@@ -78,11 +82,12 @@ export async function addFile(
   input: AddFileInput
 ): Promise<WorkspaceFile> {
   const uploadedAt = Date.now();
+  const expiresAt = uploadedAt + FILE_TTL_MS;
 
   await db
     .prepare(
-      `INSERT INTO files (id, workspace_id, name, mime_type, size, r2_key, uploaded_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO files (id, workspace_id, name, mime_type, size, r2_key, uploaded_at, expires_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       input.id,
@@ -91,7 +96,8 @@ export async function addFile(
       input.mimeType,
       input.size,
       input.r2Key,
-      uploadedAt
+      uploadedAt,
+      expiresAt
     )
     .run();
 
@@ -103,34 +109,31 @@ export async function addFile(
     size: input.size,
     url: buildFileUrl(input.workspaceId, input.id, input.name),
     uploadedAt,
+    expiresAt,
   };
 }
 
-export async function deleteWorkspace(
+export async function deleteFile(
   db: D1Database,
-  id: string
+  fileId: string
 ): Promise<void> {
-  await db
-    .prepare("DELETE FROM workspaces WHERE id = ?")
-    .bind(id)
-    .run();
+  await db.prepare("DELETE FROM files WHERE id = ?").bind(fileId).run();
 }
 
-export async function listExpiredWorkspaces(
+export async function listExpiredFiles(
   db: D1Database
-): Promise<Workspace[]> {
+): Promise<ExpiredFileRecord[]> {
   const now = Date.now();
   const { results } = await db
     .prepare(
-      "SELECT id, created_at, expires_at FROM workspaces WHERE expires_at < ?"
+      "SELECT id, workspace_id, r2_key FROM files WHERE expires_at < ?"
     )
     .bind(now)
-    .all<WorkspaceRow>();
+    .all<{ id: string; workspace_id: string; r2_key: string }>();
 
   return results.map((row) => ({
     id: row.id,
-    createdAt: row.created_at,
-    expiresAt: row.expires_at,
-    files: [],
+    workspaceId: row.workspace_id,
+    r2Key: row.r2_key,
   }));
 }

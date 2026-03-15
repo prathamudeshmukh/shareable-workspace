@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:setup": "wrangler d1 execute workspaces-db --local --file=schema.sql",
+    "dev:local": "npm run dev:setup && concurrently -n \"app,party\" -c \"cyan,green\" \"next dev\" \"npm run party:dev\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -34,6 +36,7 @@
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "jsdom": "^28.1.0",

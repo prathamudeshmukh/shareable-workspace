@@ -1,5 +1,5 @@
-import { listExpiredWorkspaces, deleteWorkspace } from "@/lib/db";
-import { deleteWorkspaceFiles } from "@/lib/r2";
+import { listExpiredFiles, deleteFile } from "@/lib/db";
+import { deleteFile as deleteR2File } from "@/lib/r2";
 import { broadcastToWorkspace } from "@/lib/partykit";
 import type {
   D1Database,
@@ -16,31 +16,29 @@ interface CleanupEnv {
 }
 
 export async function runCleanup(env: CleanupEnv): Promise<void> {
-  const expired = await listExpiredWorkspaces(env.DB);
+  const expired = await listExpiredFiles(env.DB);
 
   if (expired.length === 0) return;
 
-  console.info(`[cleanup] found ${expired.length} expired workspace(s)`);
+  console.info(`[cleanup] found ${expired.length} expired file(s)`);
 
   await Promise.all(
-    expired.map(async (workspace) => {
+    expired.map(async (file) => {
       // 1. Notify connected clients before data is gone
       await broadcastToWorkspace(
         env.PARTYKIT_HOST,
-        workspace.id,
-        { type: "workspace_expired" },
+        file.workspaceId,
+        { type: "file_expired", fileId: file.id },
         env.PARTYKIT_SECRET
       );
 
-      // 2. Delete files from R2
-      await deleteWorkspaceFiles(env.FILES, workspace.id);
+      // 2. Delete file from R2
+      await deleteR2File(env.FILES, file.r2Key);
 
-      // 3. Delete workspace row from D1 (cascades to files table)
-      await deleteWorkspace(env.DB, workspace.id);
+      // 3. Delete file row from D1
+      await deleteFile(env.DB, file.id);
 
-      console.info(
-        `[cleanup] deleted workspace ${workspace.id}`
-      );
+      console.info(`[cleanup] deleted file ${file.id} from workspace ${file.workspaceId}`);
     })
   );
 }

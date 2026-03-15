@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   createWorkspace,
   getWorkspace,
   addFile,
-  deleteWorkspace,
-  listExpiredWorkspaces,
+  deleteFile,
+  listExpiredFiles,
 } from "@/lib/db";
 import type { D1Database } from "@cloudflare/workers-types";
 
@@ -20,10 +20,10 @@ function makeD1Mock(rows: Record<string, unknown[]> = {}) {
       };
 
       // Route by SQL keyword
-      if (sql.includes("FROM files")) {
-        stmt.all = vi.fn(async () => ({ results: rows["files"] ?? [] }));
-      } else if (sql.includes("expires_at <")) {
+      if (sql.includes("FROM files") && sql.includes("expires_at <")) {
         stmt.all = vi.fn(async () => ({ results: rows["expired"] ?? [] }));
+      } else if (sql.includes("FROM files")) {
+        stmt.all = vi.fn(async () => ({ results: rows["files"] ?? [] }));
       } else if (sql.includes("SELECT") && sql.includes("workspaces")) {
         stmt.first = vi.fn(async () => rows["workspace"]?.[0] ?? null);
       }
@@ -40,8 +40,7 @@ describe("createWorkspace", () => {
     const ws = await createWorkspace(db, "ws-123");
     expect(ws.id).toBe("ws-123");
     expect(ws.files).toEqual([]);
-    expect(ws.expiresAt).toBeGreaterThan(ws.createdAt);
-    expect(ws.expiresAt - ws.createdAt).toBe(10 * 60 * 1000);
+    expect(ws.createdAt).toBeGreaterThan(0);
   });
 
   it("does not mutate any shared object", async () => {
@@ -62,7 +61,7 @@ describe("getWorkspace", () => {
   it("returns workspace with files when found", async () => {
     const now = Date.now();
     const db = makeD1Mock({
-      workspace: [{ id: "ws-1", created_at: now, expires_at: now + 60000 }],
+      workspace: [{ id: "ws-1", created_at: now }],
       files: [
         {
           id: "f-1",
@@ -72,6 +71,7 @@ describe("getWorkspace", () => {
           size: 1024,
           r2_key: "workspaces/ws-1/f-1/photo.jpg",
           uploaded_at: now,
+          expires_at: now + 600_000,
         },
       ],
     });
@@ -81,13 +81,14 @@ describe("getWorkspace", () => {
     expect(result!.id).toBe("ws-1");
     expect(result!.files).toHaveLength(1);
     expect(result!.files[0].name).toBe("photo.jpg");
+    expect(result!.files[0].expiresAt).toBe(now + 600_000);
     // r2_key must NOT be exposed on the public WorkspaceFile
     expect((result!.files[0] as unknown as Record<string, unknown>).r2Key).toBeUndefined();
   });
 });
 
 describe("addFile", () => {
-  it("returns the new file with a public url", async () => {
+  it("returns the new file with a public url and expiresAt", async () => {
     const db = makeD1Mock();
     const file = await addFile(db, {
       id: "f-1",
@@ -99,31 +100,39 @@ describe("addFile", () => {
     });
     expect(file.id).toBe("f-1");
     expect(file.url).toBe("/api/files/ws-1/f-1/doc.pdf");
+    expect(file.expiresAt).toBeGreaterThan(file.uploadedAt);
+    expect(file.expiresAt - file.uploadedAt).toBe(10 * 60 * 1000);
     expect((file as unknown as Record<string, unknown>).r2Key).toBeUndefined();
   });
 });
 
-describe("deleteWorkspace", () => {
+describe("deleteFile", () => {
   it("runs without throwing", async () => {
     const db = makeD1Mock();
-    await expect(deleteWorkspace(db, "ws-1")).resolves.toBeUndefined();
+    await expect(deleteFile(db, "f-1")).resolves.toBeUndefined();
   });
 });
 
-describe("listExpiredWorkspaces", () => {
+describe("listExpiredFiles", () => {
   it("returns empty array when none expired", async () => {
     const db = makeD1Mock();
-    const result = await listExpiredWorkspaces(db);
+    const result = await listExpiredFiles(db);
     expect(result).toEqual([]);
   });
 
-  it("returns expired workspaces", async () => {
+  it("returns expired files with workspaceId and r2Key", async () => {
     const past = Date.now() - 1000;
     const db = makeD1Mock({
-      expired: [{ id: "ws-old", created_at: past - 60000, expires_at: past }],
+      expired: [
+        { id: "f-old", workspace_id: "ws-1", r2_key: "workspaces/ws-1/f-old/file.txt" },
+      ],
     });
-    const result = await listExpiredWorkspaces(db);
+    const result = await listExpiredFiles(db);
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe("ws-old");
+    expect(result[0].id).toBe("f-old");
+    expect(result[0].workspaceId).toBe("ws-1");
+    expect(result[0].r2Key).toBe("workspaces/ws-1/f-old/file.txt");
+    // suppress unused variable lint
+    void past;
   });
 });

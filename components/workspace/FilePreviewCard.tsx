@@ -2,17 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { getPreviewType, formatFileSize } from "@/lib/file-utils";
+import { CountdownTimer } from "./CountdownTimer";
 import type { WorkspaceFile } from "@/types/workspace";
 
 interface FilePreviewCardProps {
   file: WorkspaceFile;
+  onExpired: (fileId: string) => void;
 }
 
-export function FilePreviewCard({ file }: FilePreviewCardProps) {
+export function FilePreviewCard({ file, onExpired }: FilePreviewCardProps) {
   const previewType = getPreviewType(file.mimeType);
 
   return (
-    <div className="flex animate-[fade-in_0.3s_ease-out] flex-col overflow-hidden rounded-xl border border-gray-800 bg-gray-900">
+    <div className="flex animate-fade-in flex-col overflow-hidden rounded-xl border border-gray-800 bg-gray-900">
       <div className="relative flex h-44 items-center justify-center overflow-hidden bg-gray-950">
         <Preview file={file} type={previewType} />
       </div>
@@ -20,7 +22,14 @@ export function FilePreviewCard({ file }: FilePreviewCardProps) {
         <p className="truncate text-sm font-medium text-gray-100" title={file.name}>
           {file.name}
         </p>
-        <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+          <CountdownTimer
+            compact
+            expiresAt={file.expiresAt}
+            onExpired={() => onExpired(file.id)}
+          />
+        </div>
       </div>
     </div>
   );

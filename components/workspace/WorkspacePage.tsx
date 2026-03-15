@@ -2,11 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import PartySocket from "partysocket";
-import { CountdownTimer } from "./CountdownTimer";
 import { FileDropZone } from "./FileDropZone";
 import { FileGrid } from "./FileGrid";
 import { SharePanel } from "./SharePanel";
-import { ExpiredOverlay } from "./ExpiredOverlay";
 import type { Workspace, WorkspaceFile, SSEEvent } from "@/types/workspace";
 
 interface WorkspacePageProps {
@@ -15,16 +13,13 @@ interface WorkspacePageProps {
 
 export function WorkspacePage({ workspace }: WorkspacePageProps) {
   const [files, setFiles] = useState<WorkspaceFile[]>(workspace.files);
-  const [isExpired, setIsExpired] = useState(
-    () => workspace.expiresAt < Date.now()
-  );
 
-  const handleExpired = useCallback(() => setIsExpired(true), []);
+  const handleFileExpired = useCallback((fileId: string) => {
+    setFiles((prev) => prev.filter((f) => f.id !== fileId));
+  }, []);
 
   // Connect to PartyKit room for real-time updates
   useEffect(() => {
-    if (isExpired) return;
-
     const partykitHost = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "localhost:1999";
 
     const socket = new PartySocket({
@@ -44,8 +39,8 @@ export function WorkspacePage({ workspace }: WorkspacePageProps) {
           });
         }
 
-        if (event.type === "workspace_expired") {
-          setIsExpired(true);
+        if (event.type === "file_expired") {
+          setFiles((prev) => prev.filter((f) => f.id !== event.fileId));
         }
       } catch {
         // Malformed message — ignore
@@ -53,7 +48,7 @@ export function WorkspacePage({ workspace }: WorkspacePageProps) {
     };
 
     return () => socket.close();
-  }, [workspace.id, isExpired]);
+  }, [workspace.id]);
 
   const handleUploaded = useCallback((newFiles: unknown[]) => {
     // Upload route returns files immediately — PartyKit will also broadcast
@@ -67,39 +62,34 @@ export function WorkspacePage({ workspace }: WorkspacePageProps) {
   }, []);
 
   return (
-    <>
-      {isExpired && <ExpiredOverlay />}
+    <div className="mx-auto flex min-h-screen max-w-4xl flex-col gap-8 px-4 py-10">
+      {/* Header */}
+      <header className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-lg font-semibold text-gray-100">Dropzone</h1>
+          <p className="text-xs text-gray-500 font-mono">{workspace.id}</p>
+        </div>
+      </header>
 
-      <div className="mx-auto flex min-h-screen max-w-4xl flex-col gap-8 px-4 py-10">
-        {/* Header */}
-        <header className="flex items-start justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-lg font-semibold text-gray-100">Dropzone</h1>
-            <p className="text-xs text-gray-500 font-mono">{workspace.id}</p>
-          </div>
-          <CountdownTimer expiresAt={workspace.expiresAt} onExpired={handleExpired} />
-        </header>
+      {/* Drop zone */}
+      <FileDropZone
+        workspaceId={workspace.id}
+        onUploaded={handleUploaded}
+        disabled={false}
+      />
 
-        {/* Drop zone */}
-        <FileDropZone
-          workspaceId={workspace.id}
-          onUploaded={handleUploaded}
-          disabled={isExpired}
-        />
+      {/* File grid */}
+      {files.length > 0 && <FileGrid files={files} onFileExpired={handleFileExpired} />}
 
-        {/* File grid */}
-        {files.length > 0 && <FileGrid files={files} />}
+      {/* Empty state */}
+      {files.length === 0 && (
+        <p className="text-center text-sm text-gray-600">
+          No files yet — upload something above.
+        </p>
+      )}
 
-        {/* Empty state */}
-        {files.length === 0 && !isExpired && (
-          <p className="text-center text-sm text-gray-600">
-            No files yet — upload something above.
-          </p>
-        )}
-
-        {/* Share panel */}
-        <SharePanel workspaceId={workspace.id} />
-      </div>
-    </>
+      {/* Share panel */}
+      <SharePanel workspaceId={workspace.id} />
+    </div>
   );
 }

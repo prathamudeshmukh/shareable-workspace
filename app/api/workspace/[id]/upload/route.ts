@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getEnv } from "@/lib/get-env";
 import { getWorkspace, addFile } from "@/lib/db";
 import { putFile, buildR2Key } from "@/lib/r2";
 import { broadcastToWorkspace } from "@/lib/partykit";
@@ -12,14 +12,11 @@ type Params = { params: Promise<{ id: string }> };
 export async function POST(req: Request, { params }: Params): Promise<NextResponse> {
   try {
     const { id } = await params;
-    const { env } = await getCloudflareContext({ async: true });
+    const env = await getEnv();
 
     const workspace = await getWorkspace(env.DB, id);
     if (!workspace) {
       return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
-    }
-    if (workspace.expiresAt < Date.now()) {
-      return NextResponse.json({ error: "Workspace expired" }, { status: 410 });
     }
 
     const formData = await req.formData();

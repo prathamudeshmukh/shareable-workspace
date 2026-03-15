@@ -8,9 +8,10 @@ binding = "FILES"
 bucket_name = "workspace-files"
 
 [[d1_databases]]
-binding = "workspaces_db"
+binding = "DB"
 database_name = "workspaces-db"
 database_id = "1dd5b8e8-ec8f-4d3f-88a6-223239f53021"
+migrations_dir = "migrations"
 
 [triggers]
 crons = ["* * * * *"]

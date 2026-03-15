@@ -1,4 +1,4 @@
-export const WORKSPACE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+export const FILE_TTL_MS = 10 * 60 * 1000; // 10 minutes per file
 
 export const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 

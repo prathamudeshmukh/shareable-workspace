@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { putFile, getFile, deleteWorkspaceFiles } from "@/lib/r2";
+import { putFile, getFile, deleteFile, deleteWorkspaceFiles } from "@/lib/r2";
 import type { R2Bucket } from "@cloudflare/workers-types";
 
 function makeR2Mock(objects: string[] = []) {
@@ -44,6 +44,14 @@ describe("getFile", () => {
     const bucket = makeR2Mock([]);
     const result = await getFile(bucket, "workspaces/ws-1/missing.jpg");
     expect(result).toBeNull();
+  });
+});
+
+describe("deleteFile", () => {
+  it("calls bucket.delete with the given r2 key", async () => {
+    const bucket = makeR2Mock(["workspaces/ws-1/f-1/photo.jpg"]);
+    await deleteFile(bucket, "workspaces/ws-1/f-1/photo.jpg");
+    expect(bucket.delete).toHaveBeenCalledWith("workspaces/ws-1/f-1/photo.jpg");
   });
 });
 
