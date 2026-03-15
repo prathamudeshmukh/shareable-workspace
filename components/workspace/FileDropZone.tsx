@@ -7,10 +7,12 @@ import { MAX_FILE_SIZE_BYTES, MAX_FILES_PER_UPLOAD } from "@/lib/constants";
 interface FileDropZoneProps {
   workspaceId: string;
   onUploaded: (files: unknown[]) => void;
+  currentFileCount: number;
+  maxFiles: number;
   disabled?: boolean;
 }
 
-export function FileDropZone({ workspaceId, onUploaded, disabled = false }: FileDropZoneProps) {
+export function FileDropZone({ workspaceId, onUploaded, currentFileCount, maxFiles, disabled = false }: FileDropZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -21,6 +23,11 @@ export function FileDropZone({ workspaceId, onUploaded, disabled = false }: File
     const fileArray = Array.from(files);
     setError(null);
 
+    const remaining = maxFiles - currentFileCount;
+    if (fileArray.length > remaining) {
+      setError(remaining === 0 ? "Workspace is full." : `Only ${remaining} more file${remaining === 1 ? "" : "s"} allowed in this workspace.`);
+      return;
+    }
     if (fileArray.length > MAX_FILES_PER_UPLOAD) {
       setError(`Max ${MAX_FILES_PER_UPLOAD} files at once.`);
       return;
@@ -108,7 +115,7 @@ export function FileDropZone({ workspaceId, onUploaded, disabled = false }: File
             {isDragging ? "Drop files here" : "Drop files or click to upload"}
           </p>
           <p className="mt-1 text-xs text-gray-600">
-            Up to {MAX_FILES_PER_UPLOAD} files · 50 MB each
+            {maxFiles - currentFileCount} of {maxFiles} slots available · 50 MB each
           </p>
         </div>
         <input

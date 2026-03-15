@@ -6,6 +6,7 @@ import { FileDropZone } from "./FileDropZone";
 import { FileGrid } from "./FileGrid";
 import { SharePanel } from "./SharePanel";
 import type { Workspace, WorkspaceFile, SSEEvent } from "@/types/workspace";
+import { MAX_FILES_PER_WORKSPACE } from "@/lib/constants";
 
 interface WorkspacePageProps {
   workspace: Workspace;
@@ -84,14 +85,18 @@ export function WorkspacePage({ workspace }: WorkspacePageProps) {
         </header>
 
         {/* Drop zone */}
-        <FileDropZone
-          workspaceId={workspace.id}
-          onUploaded={handleUploaded}
-          disabled={false}
-        />
+        {files.length < MAX_FILES_PER_WORKSPACE && (
+          <FileDropZone
+            workspaceId={workspace.id}
+            onUploaded={handleUploaded}
+            currentFileCount={files.length}
+            maxFiles={MAX_FILES_PER_WORKSPACE}
+            disabled={false}
+          />
+        )}
 
         {/* File grid */}
-        {files.length > 0 && <FileGrid files={files} onFileExpired={handleFileExpired} onFileDeleted={handleFileDeleted} />}
+        {files.length > 0 && <FileGrid files={files} maxFiles={MAX_FILES_PER_WORKSPACE} onFileExpired={handleFileExpired} onFileDeleted={handleFileDeleted} />}
 
         {/* Empty state */}
         {files.length === 0 && (

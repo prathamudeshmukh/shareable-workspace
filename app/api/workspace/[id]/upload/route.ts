@@ -5,7 +5,7 @@ import { getWorkspace, addFile } from "@/lib/db";
 import { putFile, buildR2Key } from "@/lib/r2";
 import { broadcastToWorkspace } from "@/lib/partykit";
 import { sanitizeFilename } from "@/lib/file-utils";
-import { MAX_FILE_SIZE_BYTES, MAX_FILES_PER_UPLOAD } from "@/lib/constants";
+import { MAX_FILE_SIZE_BYTES, MAX_FILES_PER_UPLOAD, MAX_FILES_PER_WORKSPACE } from "@/lib/constants";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -27,6 +27,16 @@ export async function POST(req: Request, { params }: Params): Promise<NextRespon
     if (uploadedFiles.length === 0) {
       return NextResponse.json({ error: "No files provided" }, { status: 400 });
     }
+
+    const currentCount = workspace.files.length;
+    const remaining = MAX_FILES_PER_WORKSPACE - currentCount;
+    if (uploadedFiles.length > remaining) {
+      return NextResponse.json(
+        { error: remaining === 0 ? "Workspace is full" : `Only ${remaining} more file${remaining === 1 ? "" : "s"} allowed in this workspace` },
+        { status: 400 }
+      );
+    }
+
     if (uploadedFiles.length > MAX_FILES_PER_UPLOAD) {
       return NextResponse.json(
         { error: `Maximum ${MAX_FILES_PER_UPLOAD} files per upload` },
