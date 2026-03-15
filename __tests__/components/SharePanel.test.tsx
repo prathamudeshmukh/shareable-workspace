@@ -9,7 +9,7 @@ Object.defineProperty(navigator, "clipboard", {
 });
 
 Object.defineProperty(window, "location", {
-  value: { href: "https://example.com/ws/test-123" },
+  value: { href: "https://example.com/workspace/ws/test-123" },
   configurable: true,
 });
 
@@ -43,7 +43,7 @@ describe("SharePanel toolbar", () => {
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /copy workspace link/i }));
     });
-    expect(writeText).toHaveBeenCalledWith("https://example.com/ws/test-123");
+    expect(writeText).toHaveBeenCalledWith("https://example.com/workspace/ws/test-123");
   });
 
   it("does not copy when URL is not yet set", () => {
