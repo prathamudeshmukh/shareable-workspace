@@ -36,6 +36,15 @@ yarn-error.log*
 # vercel
 .vercel
 
+# cloudflare / wrangler
+.wrangler
+
+# open-next build output
+.open-next
+
+# partykit build artifacts
+.partykit
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
