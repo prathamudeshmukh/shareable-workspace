@@ -9,5 +9,5 @@ export default async function Home() {
   const env = await getEnv();
   const id = nanoid();
   await createWorkspace(env.DB, id);
-  redirect(`/workspace/ws/${id}`);
+  redirect(`/ws/${id}`);
 }
