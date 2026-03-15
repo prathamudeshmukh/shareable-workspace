@@ -7,24 +7,23 @@ export interface AppEnv {
   PARTYKIT_SECRET?: string;
 }
 
-// Cache the dev proxy so we don't spin up a new Miniflare instance per request
-let devProxy: AppEnv | null = null;
+// Cache the full proxy on globalThis so it survives Next.js HMR module reloads.
+// Storing only proxy.env (as before) let the Miniflare instance be GC'd and
+// its in-memory D1 wiped — causing 404s on subsequent requests after a reload.
+type DevProxy = Awaited<ReturnType<import("wrangler")["getPlatformProxy"]>>;
+const g = globalThis as { __devProxy?: DevProxy };
 
 async function getDevEnv(): Promise<AppEnv> {
-  if (!devProxy) {
-    // Obfuscated import defeats esbuild/webpack static analysis so `wrangler`
-    // (and its `node:sqlite` dep) is never included in the production bundle.
-    // This is the same pattern used by @opennextjs/cloudflare internally.
+  if (!g.__devProxy) {
     // Obfuscated import defeats esbuild/webpack static analysis so `wrangler`
     // (and its `node:sqlite` dep) is never included in the production bundle.
     // This is the same pattern used by @opennextjs/cloudflare internally.
     const { getPlatformProxy } = await import(
       /* webpackIgnore: true */ `${"__wrangler".replaceAll("_", "")}` as string
     ) as typeof import("wrangler");
-    const proxy = await getPlatformProxy<AppEnv>();
-    devProxy = proxy.env;
+    g.__devProxy = await getPlatformProxy<AppEnv>();
   }
-  return devProxy as AppEnv;
+  return g.__devProxy.env as AppEnv;
 }
 
 export async function getEnv(): Promise<AppEnv> {

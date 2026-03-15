@@ -30,6 +30,20 @@ export async function deleteFile(
   await bucket.delete(r2Key);
 }
 
+export async function deleteFileByPrefix(
+  bucket: R2Bucket,
+  workspaceId: string,
+  fileId: string
+): Promise<void> {
+  const prefix = `${WORKSPACE_DIR_PREFIX}/${workspaceId}/${fileId}/`;
+  const listed = await bucket.list({ prefix });
+
+  if (listed.objects.length === 0) return;
+
+  const keys = listed.objects.map((obj) => obj.key);
+  await bucket.delete(keys);
+}
+
 export async function deleteWorkspaceFiles(
   bucket: R2Bucket,
   workspaceId: string
