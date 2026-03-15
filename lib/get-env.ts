@@ -10,7 +10,7 @@ export interface AppEnv {
 // Cache the full proxy on globalThis so it survives Next.js HMR module reloads.
 // Storing only proxy.env (as before) let the Miniflare instance be GC'd and
 // its in-memory D1 wiped — causing 404s on subsequent requests after a reload.
-type DevProxy = Awaited<ReturnType<import("wrangler")["getPlatformProxy"]>>;
+type DevProxy = Awaited<ReturnType<typeof import("wrangler")["getPlatformProxy"]>>;
 const g = globalThis as { __devProxy?: DevProxy };
 
 async function getDevEnv(): Promise<AppEnv> {
