@@ -3,6 +3,11 @@ main = ".open-next/worker.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
+routes = [
+  { pattern = "app.prathamesh.cloud/workspace*", zone_name = "prathamesh.cloud" },
+  { pattern = "app.prathamesh.cloud/api/*", zone_name = "prathamesh.cloud" }
+]
+
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
@@ -27,8 +32,3 @@ PARTYKIT_HOST = "https://shareable-workspace.prathamudeshmukh.partykit.dev"
 [observability.logs]
 enabled = true
 invocation_logs = true
-
-routes = [
-  { pattern = "app.prathamesh.cloud/workspace*", zone_name = "prathamesh.cloud" },
-  { pattern = "app.prathamesh.cloud/api/*", zone_name = "prathamesh.cloud" }
-]
