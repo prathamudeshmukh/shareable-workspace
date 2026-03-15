@@ -39,7 +39,7 @@ export function FileDropZone({ workspaceId, onUploaded, disabled = false }: File
 
     // Use XHR for upload progress events (fetch doesn't expose them)
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `/api/workspace/${workspaceId}/upload`);
+    xhr.open("POST", `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/api/workspace/${workspaceId}/upload`);
 
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) {

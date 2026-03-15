@@ -28,5 +28,5 @@ export function buildFileUrl(
   fileId: string,
   filename: string
 ): string {
-  return `/api/files/${workspaceId}/${fileId}/${sanitizeFilename(filename)}`;
+  return `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/api/files/${workspaceId}/${fileId}/${sanitizeFilename(filename)}`;
 }
