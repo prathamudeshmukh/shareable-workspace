@@ -13,7 +13,7 @@ export async function POST(): Promise<NextResponse> {
   } catch (error) {
     console.error("[workspace] create failed:", error);
     return NextResponse.json(
-      { error: "Failed to create workspace" },
+      { error: "Failed to create workspace", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
