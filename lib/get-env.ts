@@ -1,8 +1,9 @@
-import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
+import type { D1Database, KVNamespace, R2Bucket } from "@cloudflare/workers-types";
 
 export interface AppEnv {
   DB: D1Database;
   FILES: R2Bucket;
+  RATE_LIMIT: KVNamespace;
   PARTYKIT_HOST: string;
   PARTYKIT_SECRET?: string;
 }

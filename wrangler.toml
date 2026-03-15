@@ -12,6 +12,11 @@ routes = [
 directory = ".open-next/assets"
 binding = "ASSETS"
 
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "fec706d6ef5343a5b4db7ca4cc0f5b6d"
+preview_id = "5c3d7db62675422cb8a93cdfdfde87cf"
+
 [[r2_buckets]]
 binding = "FILES"
 bucket_name = "workspace-files"

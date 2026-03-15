@@ -6,6 +6,7 @@ import { putFile, buildR2Key } from "@/lib/r2";
 import { broadcastToWorkspace } from "@/lib/partykit";
 import { sanitizeFilename } from "@/lib/file-utils";
 import { MAX_FILE_SIZE_BYTES, MAX_FILES_PER_UPLOAD, MAX_FILES_PER_WORKSPACE } from "@/lib/constants";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -23,6 +24,15 @@ export async function POST(req: Request, { params }: Params): Promise<NextRespon
     const rawFiles = formData.getAll("files");
 
     const uploadedFiles = rawFiles.filter((f): f is File => f instanceof File);
+    const totalBytes = uploadedFiles.reduce((sum, f) => sum + f.size, 0);
+    const ip = getClientIp(req);
+    const allowed = await checkRateLimit(env.RATE_LIMIT, "upload", ip, totalBytes, RATE_LIMITS.uploadBytes);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Upload limit reached. Please wait a few minutes before uploading more." },
+        { status: 429 }
+      );
+    }
 
     if (uploadedFiles.length === 0) {
       return NextResponse.json({ error: "No files provided" }, { status: 400 });
