@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 import { getEnv } from "@/lib/get-env";
 import { createWorkspace } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const env = await getEnv();
   const id = uuidv4();
