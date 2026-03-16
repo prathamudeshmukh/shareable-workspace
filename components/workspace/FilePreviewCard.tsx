@@ -214,9 +214,9 @@ function ExpiryProgressBar({ uploadedAt, expiresAt }: { uploadedAt: number; expi
 
   const pct = remainingMs === null ? 100 : totalMs > 0 ? (remainingMs / totalMs) * 100 : 0;
   const colorClass =
-    remainingMs !== null && remainingMs <= 10_000 ? "bg-red-900" :
-    remainingMs !== null && remainingMs <= 60_000 ? "bg-amber-900" :
-    "bg-gray-700";
+    remainingMs !== null && remainingMs <= 10_000 ? "bg-rose-500 shadow-[0_0_6px_theme(colors.rose.500)]" :
+    remainingMs !== null && remainingMs <= 60_000 ? "bg-orange-500" :
+    "bg-violet-500";
 
   return (
     <div className="h-1 w-full bg-gray-800">
