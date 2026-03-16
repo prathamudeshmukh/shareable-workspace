@@ -6,7 +6,8 @@ export async function broadcastToWorkspace(
   event: SSEEvent,
   secret?: string
 ): Promise<void> {
-  const url = `https://${partykitHost}/parties/workspace/${workspaceId}`;
+  const baseUrl = partykitHost.startsWith("http") ? partykitHost : `https://${partykitHost}`;
+  const url = `${baseUrl}/parties/workspace/${workspaceId}`;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
