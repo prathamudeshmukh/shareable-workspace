@@ -7,7 +7,7 @@ export async function broadcastToWorkspace(
   secret?: string
 ): Promise<void> {
   const baseUrl = partykitHost.startsWith("http") ? partykitHost : `https://${partykitHost}`;
-  const url = `${baseUrl}/parties/workspace/${workspaceId}`;
+  const url = `${baseUrl}/parties/main/${workspaceId}`;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",

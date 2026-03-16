@@ -34,7 +34,7 @@ export function WorkspacePage({ workspace }: WorkspacePageProps) {
 
     const socket = new PartySocket({
       host: partykitHost,
-      party: "workspace",
+      party: "main",
       room: workspace.id,
     });
 
