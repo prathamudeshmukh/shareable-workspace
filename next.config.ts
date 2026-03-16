@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   basePath: BASE_PATH,
   env: {
     NEXT_PUBLIC_BASE_PATH: BASE_PATH,
+    NEXT_PUBLIC_PARTYKIT_HOST: "shareable-workspace.prathamudeshmukh.partykit.dev",
   },
   serverExternalPackages: ["wrangler", "partykit"],
   experimental: {
