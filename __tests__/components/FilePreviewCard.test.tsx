@@ -121,7 +121,7 @@ describe("FilePreviewCard", () => {
         />
       );
       const fill = container.querySelector(".bg-gray-800 > div") as HTMLElement;
-      expect(fill.className).toMatch(/bg-amber-900/);
+      expect(fill.className).toMatch(/bg-orange-500/);
     });
 
     it("progress bar uses red color when under 10 seconds remain", () => {
@@ -133,7 +133,7 @@ describe("FilePreviewCard", () => {
         />
       );
       const fill = container.querySelector(".bg-gray-800 > div") as HTMLElement;
-      expect(fill.className).toMatch(/bg-red-900/);
+      expect(fill.className).toMatch(/bg-rose-500/);
     });
 
     it("progress bar is positioned between preview and file info", () => {

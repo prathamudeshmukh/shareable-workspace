@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface SharePanelProps {
   workspaceId: string;
@@ -11,6 +11,8 @@ export function SharePanel({ workspaceId }: SharePanelProps) {
   const [copied, setCopied] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const qrModalContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setUrl(window.location.href);
@@ -23,6 +25,18 @@ export function SharePanel({ workspaceId }: SharePanelProps) {
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
+  }, [showQr]);
+
+  useEffect(() => {
+    if (!showQr) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const inToolbar = toolbarRef.current?.contains(target) ?? false;
+      const inModal = qrModalContentRef.current?.contains(target) ?? false;
+      if (!inToolbar && !inModal) setShowQr(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, [showQr]);
 
   const handleCopy = async () => {
@@ -58,7 +72,7 @@ export function SharePanel({ workspaceId }: SharePanelProps) {
 
   return (
     <>
-      <div className="fixed left-1/2 top-4 z-50 -translate-x-1/2">
+      <div ref={toolbarRef} className="fixed left-1/2 top-4 z-50 -translate-x-1/2">
         <div className="flex items-center gap-1 rounded-full border border-gray-700 bg-gray-900/80 px-2 py-1.5 backdrop-blur-sm">
           <button
             onClick={handleCopy}
@@ -90,6 +104,7 @@ export function SharePanel({ workspaceId }: SharePanelProps) {
           onClick={() => setShowQr(false)}
         >
           <div
+            ref={qrModalContentRef}
             className="relative flex w-80 flex-col items-center gap-5 rounded-2xl bg-gray-900 px-8 pb-7 pt-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >

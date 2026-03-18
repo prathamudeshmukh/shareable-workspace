@@ -97,7 +97,7 @@ export function WorkspacePage({ workspace }: WorkspacePageProps) {
         )}
 
         {/* File grid */}
-        {files.length > 0 && <FileGrid files={files} maxFiles={MAX_FILES_PER_WORKSPACE} onFileExpired={handleFileExpired} onFileDeleted={handleFileDeleted} />}
+        {files.length > 0 && <FileGrid workspaceId={workspace.id} files={files} maxFiles={MAX_FILES_PER_WORKSPACE} onFileExpired={handleFileExpired} onFileDeleted={handleFileDeleted} />}
 
         {/* Empty state */}
         {files.length === 0 && (
